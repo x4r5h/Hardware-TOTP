@@ -2,6 +2,9 @@
 
 A standalone two-factor authentication (2FA) hardware token built using the **ESP32**, featuring OLED display, USB keyboard output, and secure time-based one-time password (TOTP) generation similar to Google Authenticator, but in hardware form.
 
+![HTOTP](Preview/HTOTP.jpeg)
+
+
 ---
 
 ## 🔧 Features
@@ -24,6 +27,8 @@ A standalone two-factor authentication (2FA) hardware token built using the **ES
 ---
 
 ## 🧰 Hardware Setup
+
+<img src="Preview/layout.png" width="500" alt="Pin-Layout">
 
 | Component | Pin | Description |
 |------------|-----|-------------|
@@ -61,8 +66,6 @@ Install these via Arduino Library Manager or PlatformIO.
 5. Connect to Wi-Fi (SSID & password can be configured in code).
 6. Watch your first OTP appear on OLED 🎉
 ---
-
 ## 📷 Demo
 
 ![Demo](Preview/demo_video.mp4)
-
