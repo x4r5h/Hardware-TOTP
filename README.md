@@ -61,4 +61,8 @@ Install these via Arduino Library Manager or PlatformIO.
 5. Connect to Wi-Fi (SSID & password can be configured in code).
 6. Watch your first OTP appear on OLED 🎉
 ---
+
 ## 📷 Demo
+
+![Demo](Preview/demo_video.mp4)
+
