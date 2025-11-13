@@ -15,26 +15,11 @@
 #include <Arduino.h>
 #include "USB.h"
 #include "USBHIDKeyboard.h"
+#include "config.h"
 
-// --- Wi-Fi and NTP Config ---
+// --- Wi-Fi Config ---
 const char* WIFI_SSID = "";
 const char* WIFI_PASS = "";
-const char* NTP_SERVER = "pool.ntp.org";
-const long GMT_OFFSET_SEC = 0;
-const int DAYLIGHT_OFFSET_SEC = 0;
-const int TOTP_INTERVAL = 30; // OTP changes every 30s
-
-// --- OLED Pins ---
-#define OLED_SDA 8
-#define OLED_SCL 9
-
-// --- Buttons ---
-const int BTN_NEXT = 4;
-const int BTN_PASTE = 5;
-const unsigned long DEBOUNCE_DELAY = 50;
-
-// --- UI Offsets ---
-const int X_OFFSET = 2;
 
 // --- OLED Display Object ---
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C display(U8G2_R0, U8X8_PIN_NONE, OLED_SCL, OLED_SDA);
