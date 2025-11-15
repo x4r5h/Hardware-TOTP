@@ -18,6 +18,7 @@
 #include "config.h"
 #include "totp_core.h"
 #include "buttons.h"
+#include "display_ui.h"
 
 // --- Wi-Fi Config ---
 const char* WIFI_SSID = "";
@@ -48,17 +49,6 @@ int lastNextState = HIGH;
 unsigned long lastDebounce = 0;
 int lastPasteState = HIGH;
 bool pasteTriggered = false;
-
-// ======================================================
-//              DISPLAY HELPER FUNCTIONS
-// ======================================================
-
-// Progress bar for remaining time
-void drawProgress(int x, int y, int w, int h, int percent) {
-  display.drawFrame(x, y, w, h);
-  int fillWidth = map(percent, 0, 100, 0, w - 2);
-  if (fillWidth > 0) display.drawBox(x + 1, y + 1, fillWidth, h - 2);
-}
 
 // ======================================================
 //              MAIN SETUP
