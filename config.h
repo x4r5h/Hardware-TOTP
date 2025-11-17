@@ -23,4 +23,28 @@
 // --- UI Layout ---
 #define X_OFFSET 2  // Left margin for text on display
 
+// --- Storage Configuration ---
+#define MAX_ACCOUNTS 10
+#define MAX_LABEL_LEN 24
+#define MAX_SECRET_LEN 64
+#define NVS_NAMESPACE "totp"
+
+// Account structure
+struct TOTPAccount {
+  char label[MAX_LABEL_LEN];
+  char secret[MAX_SECRET_LEN];
+  uint8_t digits;
+  uint32_t period;
+  bool active;
+};
+
+// Device configuration
+struct DeviceConfig {
+  char wifi_ssid[33];
+  char wifi_pass[65];
+  int32_t gmt_offset;
+  uint8_t account_count;
+  bool provisioned;
+};
+
 #endif  // CONFIG_H

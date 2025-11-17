@@ -19,8 +19,13 @@
 #include "totp_core.h"
 #include "buttons.h"
 #include "display_ui.h"
+#include "storage.h"
 
-// --- Wi-Fi Config ---
+// --- Storage Manager ---
+StorageManager storage;
+DeviceConfig deviceConfig;
+
+// --- Wi-Fi Config (fallback if NVS empty) ---
 const char* WIFI_SSID = "";
 const char* WIFI_PASS = "";
 
@@ -64,8 +69,21 @@ void setup() {
   USB.begin();
   Keyboard.begin();
 
+  // Initialize storage
+  if (storage.begin()) {
+    Serial.println("NVS initialized");
+    storage.loadConfig(&deviceConfig);
+    if (deviceConfig.provisioned) {
+      Serial.println("Using stored WiFi credentials");
+    }
+  } else {
+    Serial.println("NVS init failed, using defaults");
+  }
+
   // Wi-Fi + Time Sync
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  const char* ssid = deviceConfig.wifi_ssid[0] ? deviceConfig.wifi_ssid : WIFI_SSID;
+  const char* pass = deviceConfig.wifi_pass[0] ? deviceConfig.wifi_pass : WIFI_PASS;
+  WiFi.begin(ssid, pass);
   Serial.print("Connecting to Wi-Fi");
   unsigned long start = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - start < 15000) {
