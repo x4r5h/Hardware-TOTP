@@ -20,9 +20,13 @@
 #include "buttons.h"
 #include "display_ui.h"
 #include "storage.h"
+#include "rtc_manager.h"
+#include "web_provision.h"
 
-// --- Storage Manager ---
+// --- Managers ---
 StorageManager storage;
+RTCManager rtcManager;
+WebProvisioning webProvisioning(&storage);
 DeviceConfig deviceConfig;
 
 // --- Wi-Fi Config (fallback if NVS empty) ---
@@ -73,11 +77,41 @@ void setup() {
   if (storage.begin()) {
     Serial.println("NVS initialized");
     storage.loadConfig(&deviceConfig);
-    if (deviceConfig.provisioned) {
-      Serial.println("Using stored WiFi credentials");
-    }
+  }
+
+  // Initialize RTC
+  if (rtcManager.begin()) {
+    Serial.println("RTC detected");
   } else {
-    Serial.println("NVS init failed, using defaults");
+    Serial.println("No RTC found");
+  }
+
+  // Check for provisioning mode (hold both buttons at boot)
+  if (digitalRead(BTN_NEXT) == LOW && digitalRead(BTN_PASTE) == LOW) {
+    Serial.println("Entering provisioning mode...");
+    webProvisioning.begin();
+
+    display.clearBuffer();
+    display.setFont(u8g2_font_ncenB08_tr);
+    display.drawStr(X_OFFSET, 14, "Setup Mode");
+    display.drawStr(X_OFFSET, 28, "Connect to:");
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+    char ap[32];
+    sprintf(ap, "TOTP-Setup-%02X%02X", mac[4], mac[5]);
+    display.drawStr(X_OFFSET, 42, ap);
+    display.drawStr(X_OFFSET, 56, "Pass: totpsetup");
+    display.sendBuffer();
+
+    while (true) {
+      webProvisioning.handle();
+      delay(10);
+    }
+  }
+
+  // Check if provisioned
+  if (!deviceConfig.provisioned) {
+    Serial.println("Not provisioned! Hold both buttons at boot.");
   }
 
   // Wi-Fi + Time Sync
@@ -94,8 +128,15 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nConnected!");
     configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER);
+
+    delay(2000);
+    rtcManager.syncRTCFromNTP();
   } else {
-    Serial.println("\nWi-Fi not connected, using default time.");
+    Serial.println("\nWi-Fi not connected");
+    if (rtcManager.isRTCPresent()) {
+      rtcManager.syncSystemFromRTC();
+      Serial.println("Using RTC time");
+    }
   }
 
   // Intro screen
@@ -131,7 +172,7 @@ void loop() {
   if (millis() - lastUpdate < 250) return;
   lastUpdate = millis();
 
-  time_t now = time(nullptr);
+  time_t now = rtcManager.getTime();
   struct tm timeinfo;
   localtime_r(&now, &timeinfo);
   char timeStr[16];
