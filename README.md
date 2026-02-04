@@ -1,109 +1,136 @@
 # Hardware TOTP Generator
 
-A physical 2FA device built on ESP32-S3 that generates time-based one-time passwords (TOTP). No phone needed - just press a button and it types your OTP directly via USB.
+A physical two-factor authentication device built on ESP32-S3. Generate time-based one-time passwords without needing your phone - just press a button and it types the OTP directly via USB.
 
 ![HTOTP](Preview/HTOTP.jpeg)
 
 ---
 
-## Why I Built This
-
-Got tired of pulling out my phone every time I need a 2FA code. This hardware authenticator lives on my desk and works instantly - press button, get OTP. Plus it's a fun way to learn about cryptography, embedded systems, and web protocols.
-
----
-
 ## Features
 
-- **No phone required** - Standalone TOTP generator
-- **USB keyboard emulation** - Types OTP directly into any field
-- **Multiple accounts** - Store up to 10 TOTP secrets
-- **Offline capable** - Works without WiFi using RTC backup
-- **Web setup** - Configure via captive portal (no app needed)
-- **Encrypted storage** - Secrets encrypted in flash memory
+- **Standalone operation** - No phone or computer required
+- **USB HID keyboard** - Types OTP codes directly into any input field
+- **Multi-account support** - Store up to 10 TOTP accounts
+- **Offline capable** - Maintains accurate time with optional RTC module
+- **Zero-config setup** - Captive portal web interface for easy configuration
+- **Secure storage** - AES-256 encrypted secrets in flash memory
+- **Real-time display** - Shows current code with countdown timer
 
 ---
 
-## Hardware
+## Hardware Requirements
 
-- ESP32-S3 (USB-native, WiFi)
-- 128x64 OLED display (I2C)
-- 2 buttons (next/paste)
-- DS3231 RTC module (optional - for offline timekeeping)
+- **ESP32-S3** DevKit (USB-native, WiFi enabled)
+- **128x64 OLED** display (I2C, SSD1306)
+- **2x Push buttons** (GPIO with internal pullup)
+- **DS3231 RTC** module (optional - enables offline operation)
+
+### Pinout
 
 <img src="Preview/layout.png" width="500" alt="Pin-Layout">
 
-| Component | Pin | Description |
-|-----------|-----|-------------|
-| OLED SDA  | 8   | I²C Data |
-| OLED SCL  | 9   | I²C Clock |
-| Button NEXT | 4 | Cycle accounts |
-| Button PASTE | 5 | Type OTP |
-| RTC SDA | 8 | Shared I²C (optional) |
-| RTC SCL | 9 | Shared I²C (optional) |
+| Component | GPIO Pin | Function |
+|-----------|----------|----------|
+| OLED SDA  | 8        | I²C Data |
+| OLED SCL  | 9        | I²C Clock |
+| BTN_NEXT  | 4        | Cycle through accounts |
+| BTN_PASTE | 5        | Type current OTP |
+| RTC (opt) | 8, 9     | Shared I²C bus |
 
 ---
 
-## Quick Start
+## Installation
 
-1. Install **RTClib** via Arduino Library Manager
-2. Upload to ESP32-S3
-3. Hold **both buttons** at boot → enters setup mode
-4. Connect to WiFi **"TOTP-Setup-XXXX"** (password: `totpsetup`)
-5. Configure WiFi and add accounts via web browser
-6. Device reboots - ready to use!
+### Prerequisites
 
-See [BUILD.md](BUILD.md) for detailed instructions.
+Install via Arduino Library Manager:
+- **RTClib** by Adafruit (for DS3231 RTC support)
+- **U8g2** (for OLED display)
 
----
+All other libraries are included with ESP32 core.
 
-## Usage
+### Upload
 
-- **NEXT button** - Cycle through accounts
-- **PASTE button** - Type current OTP via USB
-- Display shows: account name, OTP code, time remaining
+1. Clone this repository
+2. Open `totpgen.ino` in Arduino IDE
+3. Select **ESP32S3 Dev Module** as board
+4. Configure USB settings:
+   - USB CDC On Boot: **Enabled**
+   - USB Mode: **Hardware CDC and JTAG**
+5. Upload to device
 
----
-
-## Tech Stack
-
-**Crypto:** HMAC-SHA1, Base32 decoding, AES-256 encryption
-**Network:** WiFi, NTP, captive portal (DNS + HTTP)
-**Storage:** ESP32 NVS (encrypted flash)
-**Hardware:** I2C (display + RTC), USB HID
+See [BUILD.md](docs/BUILD.md) for detailed compilation instructions.
 
 ---
 
-## How It Works
+## Setup
 
-1. Syncs time via NTP (or uses RTC if offline)
-2. Generates 6-digit TOTP using HMAC-SHA1(secret, timestamp)
-3. Displays on OLED, types via USB keyboard when button pressed
-4. Updates RTC from NTP every hour for offline fallback
+### First Time Configuration
+
+1. Power on device while holding **both buttons**
+2. Device enters setup mode - OLED shows WiFi credentials
+3. Connect to WiFi network: `TOTP-Setup-XXXX` (password: `totpsetup`)
+4. Browser automatically opens configuration page (or navigate to 192.168.4.1)
+5. Configure WiFi credentials
+6. Add TOTP accounts (Base32 secrets)
+7. Device automatically reboots and connects to configured WiFi
+
+### Normal Operation
+
+- **NEXT button** - Cycle through saved accounts
+- **PASTE button** - Type current OTP code via USB
+- **Display** - Shows account name, 6-digit code, and countdown bar
 
 ---
 
-## File Structure
+## Architecture
+
+### Core Components
 
 ```
-totpgen.ino          - Main program (setup/loop)
-config.h             - Pin definitions, constants
-totp_core.cpp/.h     - TOTP/HOTP algorithms
-storage.cpp/.h       - NVS + encryption
-rtc_manager.cpp/.h   - Time source arbitration
-web_provision.cpp/.h - Captive portal setup
-buttons.cpp/.h       - Button debouncing
-display_ui.cpp/.h    - OLED rendering
+totpgen.ino          - Main program loop and initialization
+config.h             - Hardware pin definitions and constants
+totp_core.cpp/h      - TOTP/HOTP algorithm implementation
+storage.cpp/h        - Encrypted NVS storage manager
+rtc_manager.cpp/h    - Time source arbitration (NTP/RTC)
+web_provision.cpp/h  - Captive portal configuration interface
+buttons.cpp/h        - Debounced button input handling
+display_ui.cpp/h     - OLED rendering functions
 ```
 
-Arduino IDE automatically compiles all .cpp/.h files - no configuration needed!
+### Tech Stack
+
+**Cryptography:** HMAC-SHA1, Base32 encoding, AES-256 encryption
+**Networking:** WiFi (STA/AP), NTP, DNS, HTTP server
+**Storage:** ESP32 NVS (Non-Volatile Storage) with encryption
+**Hardware:** I2C (OLED + RTC), USB HID, GPIO interrupts
+
+### How It Works
+
+1. **Time sync** - Obtains accurate time via NTP over WiFi
+2. **RTC backup** - Syncs DS3231 RTC module for offline operation
+3. **TOTP generation** - Computes HMAC-SHA1(secret, time/30) → 6-digit code
+4. **Display update** - Refreshes OLED with current code and progress bar
+5. **USB output** - Emulates keyboard to type OTP when button pressed
 
 ---
 
 ## Security
 
-- Secrets encrypted with AES-256 (device-unique key from MAC)
-- Stored in NVS (flash memory)
-- For production: enable ESP32 flash encryption (see BUILD.md)
+- **AES-256 encryption** - All TOTP secrets encrypted at rest
+- **Device-unique keys** - Encryption key derived from ESP32 MAC address
+- **NVS storage** - Wear-leveled flash memory with built-in checksums
+- **No cloud dependency** - All data stored locally on device
+
+### Production Deployment
+
+For additional security in production environments:
+- Enable ESP32 **flash encryption**
+- Enable **secure boot**
+- Use hardware-backed eFuse keys
+- Implement HTTPS for web interface
+
+See [BUILD.md](docs/BUILD.md) for flash encryption setup.
 
 ---
 
@@ -115,16 +142,16 @@ Arduino IDE automatically compiles all .cpp/.h files - no configuration needed!
 
 ## License
 
-MIT - Do whatever you want with it.
+MIT License - See LICENSE file for details
 
 ---
 
-## Notes
+## Contributing
 
-This was a learning project exploring embedded systems, cryptography, and wireless protocols. It works well for personal use but isn't production-hardened. If you build one, don't blame me if you get locked out of your accounts ;)
+Contributions welcome! Please open an issue or submit a pull request.
 
 ---
 
-## Interview Prep
+## Acknowledgments
 
-If you're using this project for technical interviews, see [INTERVIEW_PREP.md](INTERVIEW_PREP.md) for a comprehensive guide on explaining the architecture, algorithms, and design decisions.
+Built with ESP32 Arduino core and various open-source libraries. Thanks to the embedded systems community for excellent documentation and support.
