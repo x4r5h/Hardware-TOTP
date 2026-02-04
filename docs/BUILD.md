@@ -33,17 +33,21 @@ Arduino IDE automatically compiles all .cpp/.h files in the same folder as .ino:
 
 ```
 Hardware-TOTP/
-├── totpgen.ino          ← Main sketch
-├── config.h
-├── totp_core.h/cpp
-├── buttons.h/cpp
-├── display_ui.h/cpp
-├── storage.h/cpp
-├── rtc_manager.h/cpp
-└── web_provision.h/cpp
+├── totpgen/
+│   ├── totpgen.ino      ← Main sketch
+│   ├── config.h
+│   ├── totp_core.h/cpp
+│   ├── buttons.h/cpp
+│   ├── display_ui.h/cpp
+│   ├── storage.h/cpp
+│   ├── rtc_manager.h/cpp
+│   └── web_provision.h/cpp
+├── docs/
+├── Preview/
+└── README.md
 ```
 
-**Important:** All files must be in same directory as totpgen.ino
+**Important:** Open `totpgen/totpgen.ino` in Arduino IDE
 
 ## First Boot
 

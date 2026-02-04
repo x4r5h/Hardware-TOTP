@@ -52,7 +52,7 @@ All other libraries are included with ESP32 core.
 ### Upload
 
 1. Clone this repository
-2. Open `totpgen.ino` in Arduino IDE
+2. Open `totpgen/totpgen.ino` in Arduino IDE
 3. Select **ESP32S3 Dev Module** as board
 4. Configure USB settings:
    - USB CDC On Boot: **Enabled**
