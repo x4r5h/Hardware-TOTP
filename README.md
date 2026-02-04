@@ -142,16 +142,4 @@ See [BUILD.md](docs/BUILD.md) for flash encryption setup.
 
 ## License
 
-MIT License - See LICENSE file for details
-
----
-
-## Contributing
-
-Contributions welcome! Please open an issue or submit a pull request.
-
----
-
-## Acknowledgments
-
-Built with ESP32 Arduino core and various open-source libraries. Thanks to the embedded systems community for excellent documentation and support.
+MIT License - Do whatever you want to do with it
